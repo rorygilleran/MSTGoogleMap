@@ -1,0 +1,855 @@
+﻿<html>
+<head>
+    <title></title>
+    <style type="text/css">
+        .infodescription
+        {
+            font-family: Tahoma;
+            font-size: 10pt;
+            max-width: 300px;
+            width: 300px;
+            height: 150px;
+            text-align: justify;
+            max-height: 150px;
+            min-height: 150px;
+            min-width: 200px;
+            padding-right: 6px;
+            overflow-x: auto;
+            overflow-y: auto;
+        }
+        .elabel_white
+        {
+            background-color: #ffffff;
+            border: 1px #000000 solid;
+            color: #212121;
+            font-family: Tahoma;
+            font-style: italic;
+            font-size: 8.25pt;
+            font-weight: bold;
+        }
+    </style>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <script src="http://maps.google.com/maps?file=api&amp;v=3.2&amp;sensor=true&amp;key="" type="text/javascript"></script>
+    <script type="text/javascript" language="javascript">
+        var map = null;
+        var pin = null;
+        var Markers = [];
+        var GeofenceArray = [];
+        var Markers_Detail = [];
+        var VehicleArray = [];
+        var numOfPlots = 1;
+        var useLabels = "True";
+        var joinPoints = "False";
+        var useDrivers = "True";
+        var displayOption = "ByReg";
+        var distUnitMultiplier = "1";
+        var distUnits = "";
+        var currentZoomLevel = 15;
+        var changedMapType;
+        var routePoints = Array();
+        var idMapClick;
+        var idMapRightClick;
+        var idMouseMove;
+        var lastPoint;
+        var markerCount = 0;
+        var routeOverlay;
+        var distanceOverlay;
+        var tmpDist;
+        var thisDistance = 0;
+        var showGeofences = "False";
+        var measureDistance = "False";
+        var opacity = 0.4;
+        var circle = [];
+        var centerMarker;
+        var circleUnits;
+        var circleRadius;
+        var geoFenceListener;
+        var options = {};
+        var lineCounter = 0;
+        var CreatingGeofence = false;
+        // ELabel.js 
+        //
+        //   This Javascript is provided by Mike Williams
+        //   Community Church Javascript Team
+        //   http://www.bisphamchurch.org.uk/   
+        //   http://econym.org.uk/gmap/
+        //
+        //   This work is licenced under a Creative Commons Licence
+        //   http://creativecommons.org/licenses/by/2.0/uk/
+        //
+        // Version 0.2      the .copy() parameters were wrong
+        // version 1.0      added .show() .hide() .setContents() .setPoint() .setOpacity() .overlap
+        // version 1.1      Works with GMarkerManager in v2.67, v2.68, v2.69, v2.70 and v2.71
+        // version 1.2      Works with GMarkerManager in v2.72, v2.73, v2.74 and v2.75
+        // version 1.3      add .isHidden()
+        // version 1.4      permit .hide and .show to be used before addOverlay()
+        // version 1.5      fix positioning bug while label is hidden
+        // version 1.6      added .supportsHide()
+        // version 1.7      fix .supportsHide()
+        // version 1.8      remove the old GMarkerManager support due to clashes with v2.143
+
+
+        function ELabel(point, html, classname, pixelOffset, percentOpacity, overlap) {
+            // Mandatory parameters
+            this.point = point;
+            this.html = html;
+
+            // Optional parameters
+            this.classname = classname || "";
+            this.pixelOffset = pixelOffset || new GSize(0, 0);
+            if (percentOpacity) {
+                if (percentOpacity < 0) { percentOpacity = 0; }
+                if (percentOpacity > 100) { percentOpacity = 100; }
+            }
+            this.percentOpacity = percentOpacity;
+            this.overlap = overlap || false;
+            this.hidden = false;
+        }
+
+        ELabel.prototype = new GOverlay();
+
+        ELabel.prototype.initialize = function (map) {
+            var div = document.createElement("div");
+            div.style.position = "absolute";
+            div.innerHTML = '<div class="' + this.classname + '">' + this.html + '</div>';
+            map.getPane(G_MAP_FLOAT_SHADOW_PANE).appendChild(div);
+            this.map_ = map;
+            this.div_ = div;
+            if (this.percentOpacity) {
+                if (typeof (div.style.filter) == 'string') { div.style.filter = 'alpha(opacity:' + this.percentOpacity + ')'; }
+                if (typeof (div.style.KHTMLOpacity) == 'string') { div.style.KHTMLOpacity = this.percentOpacity / 100; }
+                if (typeof (div.style.MozOpacity) == 'string') { div.style.MozOpacity = this.percentOpacity / 100; }
+                if (typeof (div.style.opacity) == 'string') { div.style.opacity = this.percentOpacity / 100; }
+            }
+            if (this.overlap) {
+                var z = GOverlay.getZIndex(this.point.lat());
+                this.div_.style.zIndex = z;
+            }
+            if (this.hidden) {
+                this.hide();
+            }
+        }
+
+        ELabel.prototype.remove = function () {
+            this.div_.parentNode.removeChild(this.div_);
+        }
+
+        ELabel.prototype.copy = function () {
+            return new ELabel(this.point, this.html, this.classname, this.pixelOffset, this.percentOpacity, this.overlap);
+        }
+
+        ELabel.prototype.redraw = function (force) {
+            var p = this.map_.fromLatLngToDivPixel(this.point);
+            var h = parseInt(this.div_.clientHeight);
+            this.div_.style.left = (p.x + this.pixelOffset.width) + "px";
+            this.div_.style.top = (p.y + this.pixelOffset.height - h) + "px";
+        }
+
+        ELabel.prototype.show = function () {
+            if (this.div_) {
+                this.div_.style.display = "";
+                this.redraw();
+            }
+            this.hidden = false;
+        }
+
+        ELabel.prototype.hide = function () {
+            if (this.div_) {
+                this.div_.style.display = "none";
+            }
+            this.hidden = true;
+        }
+
+        ELabel.prototype.isHidden = function () {
+            return this.hidden;
+        }
+
+        ELabel.prototype.supportsHide = function () {
+            return true;
+        }
+
+        ELabel.prototype.setContents = function (html) {
+            this.html = html;
+            this.div_.innerHTML = '<div class="' + this.classname + '">' + this.html + '</div>';
+            this.redraw(true);
+        }
+
+        ELabel.prototype.setPoint = function (point) {
+            this.point = point;
+            if (this.overlap) {
+                var z = GOverlay.getZIndex(this.point.lat());
+                this.div_.style.zIndex = z;
+            }
+            this.redraw(true);
+        }
+
+        ELabel.prototype.setOpacity = function (percentOpacity) {
+            if (percentOpacity) {
+                if (percentOpacity < 0) { percentOpacity = 0; }
+                if (percentOpacity > 100) { percentOpacity = 100; }
+            }
+            this.percentOpacity = percentOpacity;
+            if (this.percentOpacity) {
+                if (typeof (this.div_.style.filter) == 'string') { this.div_.style.filter = 'alpha(opacity:' + this.percentOpacity + ')'; }
+                if (typeof (this.div_.style.KHTMLOpacity) == 'string') { this.div_.style.KHTMLOpacity = this.percentOpacity / 100; }
+                if (typeof (this.div_.style.MozOpacity) == 'string') { this.div_.style.MozOpacity = this.percentOpacity / 100; }
+                if (typeof (this.div_.style.opacity) == 'string') { this.div_.style.opacity = this.percentOpacity / 100; }
+            }
+        }
+
+        ELabel.prototype.getPoint = function () {
+            return this.point;
+        }
+
+        // Polyline with arrows
+        //
+        // Bill Chadwick May 2008
+        //
+        // Free for any use
+        //
+
+        // Constructor params exactly as GPolyline then 
+        // 1) arrow spacing in pixels, 
+        // 2) arrow head length in pixels
+        // 3) arrow colour
+        // 4) arrow thickness in pixels
+        // 5) arrow opacity
+
+        function BDCCArrowedPolyline(points, color, weight, opacity, opts, gapPx, headLength, headColor, headWeight, headOpacity) {
+
+            this.gapPx = gapPx;
+            this.points = points;
+            this.color = color;
+            this.weight = weight;
+            this.opacity = opacity;
+            this.headLength = headLength;
+            this.headColor = headColor;
+            this.headWeight = headWeight;
+            this.headOpacity = headOpacity;
+            this.opts = opts;
+            this.heads = new Array();
+            this.line = null;
+
+        }
+        BDCCArrowedPolyline.prototype = new GOverlay();
+
+
+        BDCCArrowedPolyline.prototype.initialize = function (map) {
+
+            this.map = map;
+            this.prj = map.getCurrentMapType().getProjection();
+            var rdrw = GEvent.callback(this, this.recalc);
+            this.lstnMoveEnd = GEvent.addListener(map, "zoomend", function () { rdrw(); });
+            this.lstnType = GEvent.addListener(map, "maptypechanged", function () { rdrw(); });
+
+            this.recalc(); //first draw
+        }
+
+        BDCCArrowedPolyline.prototype.remove = function () {
+
+            try {
+                if (this.line)
+                    this.map.removeOverlay(this.line);
+                for (var i = 0; i < this.heads.length; i++)
+                    this.map.removeOverlay(this.heads[i]);
+            }
+            catch (ex) {
+            }
+        }
+
+        BDCCArrowedPolyline.prototype.redraw = function (force) {
+            return; //do nothing, the GPolyline line and heads draw themselves
+        }
+
+
+        BDCCArrowedPolyline.prototype.copy = function (map) {
+            return new BDCCArrowedPolyline(this.points, this.color, this.weight, this.opacity, this.opts, this.gapPx, this.headLength, this.headColor, this.headWeight, this.headOpacity);
+        }
+
+
+        BDCCArrowedPolyline.prototype.recalc = function () {
+
+            var zoom = this.map.getZoom();
+
+            this.remove();
+
+            //the main polyline
+            this.line = new GPolyline(this.points, this.color, this.weight, this.opacity, this.opts);
+            this.map.addOverlay(this.line);
+
+            // the arrow heads
+            this.heads = new Array();
+
+            var p1 = this.prj.fromLatLngToPixel(this.points[0], zoom); //first point
+            var p2; //next point
+            var dx;
+            var dy;
+            var sl; //segment length
+            var theta; //segment angle
+            var ta; //distance along segment for placing arrows
+
+            for (var i = 1; i < this.points.length; i++) {
+
+                p2 = this.prj.fromLatLngToPixel(this.points[i], zoom)
+                dx = p2.x - p1.x;
+                dy = p2.y - p1.y;
+
+                if (Math.abs(this.points[i - 1].lng() - this.points[i].lng()) > 180.0)
+                    dx = -dx;
+
+                sl = Math.sqrt((dx * dx) + (dy * dy));
+                theta = Math.atan2(-dy, dx);
+
+
+
+                j = 1;
+
+                if (this.gapPx == 0) {
+                    //just put one arrow at the end of the line
+                    this.addHead(p2.x, p2.y, theta, zoom);
+                }
+                else if (this.gapPx == 1) {
+                    //just put one arrow in the middle of the line
+                    var x = p1.x + ((sl / 2) * Math.cos(theta));
+                    var y = p1.y - ((sl / 2) * Math.sin(theta));
+                    this.addHead(x, y, theta, zoom);
+                }
+                else {
+                    //iterate along the line segment placing arrow markers
+                    //don't put an arrow within gapPx of the beginning or end of the segment 
+
+                    ta = this.gapPx;
+                    while (ta < sl) {
+                        var x = p1.x + (ta * Math.cos(theta));
+                        var y = p1.y - (ta * Math.sin(theta));
+                        this.addHead(x, y, theta, zoom);
+                        ta += this.gapPx;
+                    }
+
+                    //line too short, put one arrow in its middle
+                    if (ta == this.gapPx) {
+                        var x = p1.x + ((sl / 2) * Math.cos(theta));
+                        var y = p1.y - ((sl / 2) * Math.sin(theta));
+                        this.addHead(x, y, theta, zoom);
+                    }
+                }
+
+                p1 = p2;
+            }
+        }
+
+        BDCCArrowedPolyline.prototype.addHead = function (x, y, theta, zoom) {
+
+            //add an arrow head at the specified point
+            var t = theta + (Math.PI / 4);
+            if (t > Math.PI)
+                t -= 2 * Math.PI;
+            var t2 = theta - (Math.PI / 4);
+            if (t2 <= (-Math.PI))
+                t2 += 2 * Math.PI;
+            var pts = new Array();
+            var x1 = x - Math.cos(t) * this.headLength;
+            var y1 = y + Math.sin(t) * this.headLength;
+            var x2 = x - Math.cos(t2) * this.headLength;
+            var y2 = y + Math.sin(t2) * this.headLength;
+            pts.push(this.prj.fromPixelToLatLng(new GPoint(x1, y1), zoom));
+            pts.push(this.prj.fromPixelToLatLng(new GPoint(x, y), zoom));
+            pts.push(this.prj.fromPixelToLatLng(new GPoint(x2, y2), zoom));
+            this.heads.push(new GPolyline(pts, this.headColor, this.headWeight, this.headOpacity, this.opts));
+            this.map.addOverlay(this.heads[this.heads.length - 1]);
+        }
+
+
+        function SetupMap() {
+            if (GBrowserIsCompatible()) {
+                if (!map) {
+                    var mapOptions = {
+                        zoom: 14,
+                        streetViewControl: true
+                    };
+                    map = new GMap2(document.getElementById("myMap"), mapOptions);
+                    GEvent.addListener(map, 'maptypechanged', MapTypeChanged);
+                    map.addMapType(G_PHYSICAL_MAP);
+                    map.setMapType(G_NORMAL_MAP);
+                    zoomLevel = 12;
+                }
+                else {
+                    zoomLevel = map.getZoom();
+                    map.clearOverlays();
+                }
+            }
+        }
+        function MapTypeChanged() {
+            var newMap = map.getCurrentMapType().getName();
+            window.external.MapTypeChanged(newMap);
+        }
+        function SetMapValues() {
+            numOfPlots = 1;
+            useDrivers = "True";
+            displayOption = "ByReg";
+        }
+        function SetMapBounds() {
+            var latlngbounds = new GLatLngBounds();
+            for (var i = 0; i < VehicleArray.length; i++) {
+                var loc = new GLatLng(VehicleArray[i][2], VehicleArray[i][3]);
+                latlngbounds.extend(loc);
+            }
+            if (VehicleArray.length > 1) {
+                map.setCenter(latlngbounds.getCenter(), map.getBoundsZoomLevel(latlngbounds) - 1);
+            }
+            else {
+                map.setCenter(latlngbounds.getCenter(), zoomLevel);
+            }
+            map.addControl(new GScaleControl());
+            map.addControl(new GLargeMapControl());
+            map.addControl(new GMapTypeControl());
+            map.enableContinuousZoom();
+            map.enableScrollWheelZoom();
+        }
+        function BuildVehicleArray(tmpArrayStr) {
+            var tmpArray = [];
+            tmpArray = tmpArrayStr.split('~');
+            VehicleArray = [];
+            for (var i = 0; i < tmpArray.length; i++) {
+                VehicleArray[i] = tmpArray[i].split('|');
+            }
+        }
+        function ClearAllOverLays() {
+            map.clearOverlays();
+            endDistanceListeners();
+        }
+        function SetMapOptions(labels, points) {
+            useLabels = labels;
+            joinPoints = points;
+        }
+        function Do_GUnload() {
+            document.getElementById("hiddenMapType").value = map.getCurrentMapType().pL;
+            GUnload();
+        }
+        function mapRightClick(point, src) {
+            var tmpPoint = map.fromContainerPixelToLatLng(point);
+            if (measureDistance == "True") {
+                measureDistance = "False";
+                endMarker = createMarker(tmpPoint, 'End');
+                thisDistance = thisDistance + tmpDist * distUnitMultiplier;
+                if (distUnitMultiplier == 1) {
+                    map.openInfoWindowHtml(tmpPoint, 'Distance: ' + thisDistance.toFixed(3) + ' kms');
+                }
+                else {
+                    map.openInfoWindowHtml(tmpPoint, 'Distance: ' + thisDistance.toFixed(3) + ' miles');
+                }
+                map.addOverlay(endMarker);
+                GEvent.removeListener(idMouseMove);
+                GEvent.removeListener(idMapClick);
+                GEvent.removeListener(idMapRightClick);
+                idMapclick = null;
+                idMapRightClick = null;
+                idMouseMove = null;
+            }
+        }
+        function addRoutePoint(point) {
+            var zoom = map.getZoom();
+            routePoints.push(point);
+            if (routePoints.length > 1) {
+                plotRoute();
+            }
+            else {
+                startMarker = createMarker(point, 'Start');
+                map.addOverlay(startMarker);
+            }
+        }
+        function haversine_Calc(point_1, point_2) {
+            var lat1 = point_1.y;
+            var lat2 = point_2.y;
+            var lon1 = point_1.x;
+            var lon2 = point_2.x;
+            var R = 6371;
+            var dLat = toRad(lat2 - lat1);
+            var dLon = toRad(lon2 - lon1);
+            var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            var d = R * c;
+            return d;
+        }
+        function plotDistance(mouseLatLong) {
+            if (mouseLatLong && routePoints[markerCount - 1]) {
+                if (distanceOverlay) {
+                    map.removeOverlay(distanceOverlay); map.closeInfoWindow();
+                }
+                var linePoints = Array();
+                linePoints.push(routePoints[markerCount - 1]);
+                linePoints.push(mouseLatLong);
+                lastPoint = mouseLatLong;
+                distanceOverlay = new GPolyline(linePoints, '#FF9601', 3, 1);
+                map.addOverlay(distanceOverlay);
+                tmpDist = haversine_Calc(routePoints[markerCount - 1], mouseLatLong).toFixed(3);
+                tmpDist = tmpDist * distUnitMultiplier;
+                var plottedDistance = tmpDist + thisDistance;
+                if (distUnitMultiplier == 1) {
+                    map.openInfoWindowHtml(mouseLatLong, 'Distance: ' + plottedDistance.toFixed(3) + ' kms');
+                }
+                else {
+                    map.openInfoWindowHtml(mouseLatLong, 'Distance: ' + plottedDistance.toFixed(3) + ' miles');
+                }
+            }
+        }
+        function AddGoogleMarkers() {
+            pinid = 0;
+            var icon = 'Images/LorryGreen.png';
+            for (i = 0; i < VehicleArray.length; i++) {
+                var sessIgnStat = VehicleArray[i][7];
+                var sessHeading = VehicleArray[i][8];
+                var sessEvent = VehicleArray[i][9];
+                var sessOdo = VehicleArray[i][10];
+                switch (sessIgnStat) {
+                    case 'OFF':
+                        icon = 'http://94.247.97.46/Images/Vehicles/red.png';
+                        break;
+                    case 'ON':
+                        icon = 'http://94.247.97.46/Images/Vehicles/green.png';
+                        break;
+                    default:
+                        icon = 'http://94.247.97.46/Images/Vehicles/purple.png';
+                        break;
+                }
+                if (sessEvent == 'Position') {
+                    sessEvent = '';
+                }
+                var thisLabel;
+                if (displayOption == 'ByReg') {
+                    thisLabel = VehicleArray[i][0];
+                }
+                else {
+                    thisLabel = VehicleArray[i][1];
+                }
+                var sessDetails = '<div class=infodescription><B>' + thisLabel + ' <\/B><br><br>Date: ' + VehicleArray[i][4] + '<br>Location: ' + VehicleArray[i][6] + '<br>Speed:   ' + VehicleArray[i][5] + '<br>Odometer:   ' + sessOdo + '<br><B>' + sessEvent + '<\/B></div>';
+                if (useDrivers == 'True') {
+                    sessDetails = '<div class=infodescription><B>' + thisLabel + ' <\/B><br><br>Date: ' + VehicleArray[i][4] + '<br>Location: ' + VehicleArray[i][6] + '<br>Speed:   ' + VehicleArray[i][5] + '<br>Odometer:   ' + sessOdo + '<br>Driver:   ' + VehicleArray[i][11] + '<br><B>' + sessEvent + '<\/B></div>';
+                }
+                if (sessIgnStat == 'SITE') {
+                    sessDetails = '<div class=infodescription><B>' + thisLabel + ' <\/B><br><br>Location: ' + VehicleArray[i][6] + '<br><br<br>' + VehicleArray[i][1] + '<\/B></div>';
+                }
+                Markers_Detail.push(sessDetails);
+                var myIcon = new GIcon(G_DEFAULT_ICON);
+                myIcon.image = icon;
+                myIcon.shadow = null;
+                myIcon.iconSize = new GSize(20, 24);
+                myIcon.iconAnchor = new GPoint(10, 24);
+                var markerOptions = { icon: myIcon };
+                var loc = new GLatLng(VehicleArray[i][2], VehicleArray[i][3]);
+                if (sessIgnStat == 'SITE') {
+                    Markers.push(new GMarker(loc, thisLabel));
+                }
+                else {
+                    Markers.push(new GMarker(loc, markerOptions));
+                }
+                GEvent.addListener(Markers[Markers.length - 1], 'mouseover', function (evt) {
+                    for (var i = 0; i < Markers.length; i++) {
+                        if (Markers[i].getLatLng() == evt) {
+                            Markers[i].openInfoWindowHtml(Markers_Detail[i]);
+                        }
+                    }
+                });
+                map.addOverlay(Markers[Markers.length - 1]);
+                if (useLabels == true || useLabels == 'True') {
+                    var thisVehicleLabel = new ELabel(loc, thisLabel, 'elabel_white', new GSize(6, -15), null, true);
+                    map.addOverlay(thisVehicleLabel);
+                }
+                pinid++;
+            }
+            if (joinPoints == true || joinPoints == 'True') {
+                JoinHistoryPoints();
+            }
+        }
+        function mapClick(marker, point) {
+            if (point && markerCount == 0) {
+                var unboundedPoint = new GLatLng(point.lat(), point.lng());
+                idMouseMove = GEvent.addListener(map, 'mousemove', plotDistance);
+                idMapRightClick = GEvent.addListener(map, 'singlerightclick', mapRightClick);
+                measureDistance = "True";
+                addRoutePoint(unboundedPoint);
+                markerCount++;
+            }
+            else {
+                addRoutePoint(lastPoint);
+                markerCount++;
+                thisDistance = thisDistance + tmpDist * distUnitMultiplier;
+            }
+        }
+        function AllowCreateGeofence() {
+            geoFenceListener = GEvent.addListener(map, 'singlerightclick', function (point, src) {
+                Google_Map_Click(map.fromContainerPixelToLatLng(point));
+            });
+        }
+        function JoinHistoryPoints() {
+            try {
+                var i = 0;
+                var history_Points = new Array();
+                for (i = 0; i < VehicleArray.length; i++) {
+                    history_Points.push(new GLatLng(parseFloat(VehicleArray[i][2]), parseFloat(VehicleArray[i][3])));
+                }
+                var linecolor = '#FF0000'
+                polyline = new BDCCArrowedPolyline(history_Points, linecolor, 4, 0.3, null, 30, 7, linecolor, 2, 0.5);
+                map.addOverlay(polyline);
+                IsShowingHistoryPoints = true;
+            }
+            catch (Error) {
+            }
+        }
+        function Load_Google_Map() {
+            tmpArrayStr = 'Freelander2||53.4491333333333|-6.22033333333333|2012-04-19 16:43:18|0  N |0.042 Km , N of - LAKE VIEW DRIVE , SWORDS|OFF|N ||19,906|';
+            BuildVehicleArray(tmpArrayStr);
+            SetupMap();
+            AddGoogleMarkers();
+            SetMapBounds();
+        }
+        function addDistanceListeners() {
+            measureDistance = "True";
+            idMapClick = GEvent.addListener(map, 'click', mapClick);
+        }
+        function endDistanceListeners() {
+            try {
+                if (routeOverlay) {
+                    map.removeOverlay(routeOverlay);
+                }
+            }
+            catch (Error) {
+            }
+            try {
+                if (distanceOverlay) {
+                    map.removeOverlay(distanceOverlay);
+                }
+            }
+            catch (Error) {
+            }
+            try {
+                if (startMarker) {
+                    map.removeOverlay(startMarker);
+                }
+            }
+            catch (Error) {
+            }
+            try {
+                if (endMarker) {
+                    map.removeOverlay(endMarker);
+                }
+            }
+            catch (Error) {
+            }
+            markerCount = 0;
+            routePoints = [];
+            measureDistance = "False";
+            tmpDist = 0;
+            thisDistance = 0;
+            try {
+                map.closeInfoWindow();
+                GEvent.removeListener(idMapClick);
+            }
+            catch (Error) {
+            }
+        }
+        function clearDistanceListeners() {
+            try {
+                if (routeOverlay) {
+                    map.removeOverlay(routeOverlay);
+                }
+            }
+            catch (Error) {
+            }
+            try {
+                if (distanceOverlay) {
+                    map.removeOverlay(distanceOverlay);
+                }
+            }
+            catch (Error) {
+            }
+            try {
+                if (startMarker) {
+                    map.removeOverlay(startMarker);
+                }
+            }
+            catch (Error) {
+            }
+            try {
+                if (endMarker) {
+                    map.removeOverlay(endMarker);
+                }
+            }
+            catch (Error) {
+            }
+            markerCount = 0;
+            routePoints = [];
+            tmpDist = 0;
+            thisDistance = 0;
+            map.closeInfoWindow();
+            idMapClick = GEvent.addListener(map, 'click', mapClick);
+        }
+        function toRad(deg) {
+            return deg * Math.PI / 180;
+        }
+        function plotRoute() {
+            if (routeOverlay) {
+                map.removeOverlay(routeOverlay);
+            }
+            routeOverlay = new GPolyline(routePoints, '#FF9601', 3, 1);
+            map.addOverlay(routeOverlay);
+        }
+        function createMarker(point, title) {
+            var marker = new GMarker(point, { title: title });
+            return marker;
+        }
+        function drawCircle(geoID, geoLat, geoLong, geoRadius) {
+            if (distUnits == "Miles") {
+                circleUnits = "MI";
+            }
+            else {
+                circleUnits = "KM";
+            }
+
+            circleRadius = geoRadius;
+
+            doDrawCircle(geoID, geoLat, geoLong);
+        }
+        function doDrawCircle(geoID, geoLat, geoLong) {
+            try {
+                var bounds = new GLatLngBounds();
+                var circlePoints = Array();
+                var d;
+                if (circleUnits == 'KM') {
+                    d = circleRadius / 6378.8; // radians	
+                }
+                else { //miles	
+                    d = circleRadius / 3963.189; // radians	
+                }
+
+                var lat1 = (Math.PI / 180) * geoLat; // radians	
+                var lng1 = (Math.PI / 180) * geoLong; // radians	
+
+                for (var a = 0; a < 361; a++) {
+                    var tc = (Math.PI / 180) * a;
+                    var y = Math.asin(Math.sin(lat1) * Math.cos(d) + Math.cos(lat1) * Math.sin(d) * Math.cos(tc));
+                    var dlng = Math.atan2(Math.sin(tc) * Math.sin(d) * Math.cos(lat1), Math.cos(d) - Math.sin(lat1) * Math.sin(y));
+                    var x = ((lng1 - dlng + Math.PI) % (2 * Math.PI)) - Math.PI; // MOD function	
+                    var point = new GLatLng(parseFloat(y * (180 / Math.PI)), parseFloat(x * (180 / Math.PI)));
+                    circlePoints.push(point);
+                    bounds.extend(point);
+                }
+                if (d < 1.5678565720686044) {
+                    circle[geoID] = new GPolygon(circlePoints, '#000000', 1, 0.25, '#FFCCFF', 0.5);
+                }
+                else {
+                    circle[geoID] = new GPolygon(circlePoints, '#FFCCFF', 1, 0.5);
+                }
+                map.addOverlay(circle[geoID]);
+            }
+            catch (Error) {
+                window.alert("Error 2477: " + Error.message);
+            }
+        }
+        function CreateGeofenceLayer(tmpGeoFenceArrayStr) {
+            try {
+                if (showGeofences == "False") {
+                    BuildGeoFenceArray(tmpGeoFenceArrayStr);
+                    for (var i = 0; i < GeofenceArray.length; i++) {
+                        var geoID = GeofenceArray[i][0];
+                        var geoLat = GeofenceArray[i][2];
+                        var geoLong = GeofenceArray[i][3];
+                        var geoRadius = GeofenceArray[i][4] / 1000;
+                        if (geoLat !== "0" && geoLong !== "0") {
+                            drawCircle(geoID, geoLat, geoLong, geoRadius);
+                        }
+                    }
+                    showGeofences = "True";
+                }
+                else {
+                    try {
+                        for (gid = 0; gid < GeofenceArray.length; gid++) {
+                            geoID_1 = GeofenceArray[gid][0];
+                            if (circle[geoID_1]) {
+                                map.removeOverlay(circle[geoID_1]);
+                            }
+                        }
+                        showGeofences = "False";
+                    }
+                    catch (Error) {
+                        window.alert("Error 799: " + Error.message);
+                    }
+                }
+            }
+            catch (Error) {
+                window.alert("Error 2403: " + Error.message);
+            }
+        }
+        function BuildGeoFenceArray(tmpArrayStr) {
+            try {
+                var tmpArray = new Array();
+                tmpArray = tmpArrayStr.split('~');
+                GeofenceArray = [];
+                for (var i = 0; i < tmpArray.length - 1; i++) {
+                    GeofenceArray[i] = tmpArray[i].split(',');
+                }
+            }
+            catch (Error) {
+                window.alert("Build GeoFence Array Error: " + Error.message);
+            }
+        }
+        function Google_Map_Click(clickedPoint) {
+            var thisLoc = clickedPoint;
+            var thisLatLong;
+            if (CreatingGeofence === false) {
+                CreatingGeofence = true;
+                var thisZoomLevel = map.getZoom();
+                if (thisZoomLevel > 13) {
+                    var createMsg = "Create geofence at this location";
+                    input_box = confirm(createMsg);
+                    if (input_box === true) {
+                        var thisLat = clickedPoint.y;
+                        var thisLong = clickedPoint.x;
+                        thisLatLong = thisLat + ',' + thisLong
+                        window.external.CreateGeofence(thisLatLong);
+                    }
+                    else {
+                        CreatingGeofence = false;
+                    }
+                }
+                else {
+                    var cantMsg = "Cannot create geofence at this zoom level. Please zoom in and retry"
+                    window.alert(cantMsg);
+                }
+                CreatingGeofence = false;
+                GEvent.removeListener(geoFenceListener);
+            }
+        }
+        function startLine() {
+            var color = '#FF0000';
+            var line = new GPolyline([], color);
+            startDrawing(line, "Line " + (++lineCounter), color);
+            document.getElementById("hiddentxtMapData").value = line
+        }
+        function startDrawing(poly, name, color) {
+            map.addOverlay(poly);
+            poly.enableDrawing(options);
+            poly.enableEditing({ onEvent: "mouseover" });
+            poly.disableEditing({ onEvent: "mouseout" });
+            GEvent.addListener(poly, "endline", function () {
+                GEvent.addListener(poly, "click", function (latlng, index) {
+                    if (typeof index == "number") {
+                        poly.deleteVertex(index);
+                    } else {
+                        var newColor = '#0000ff';
+                        poly.setStrokeStyle({ color: newColor, weight: 4 });
+                    }
+                });
+            });
+        }
+    </script>
+</head>
+<body onload="Load_Google_Map();" onunload="Do_GUnload();">
+    <div id='myMap' style="width: 100%; height: 100%;">
+    </div>
+    <input id="hiddenMapType" runat="server" type="hidden" />
+    <input id="hiddentxtMapData" runat="server" type="hidden" />
+</body>
+</html>

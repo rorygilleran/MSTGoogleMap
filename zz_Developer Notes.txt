@@ -1,0 +1,24 @@
+PlotPolygonRoutes - Creates str_PolygonRoutes
+
+	Called from		Google_DisplayMap	If plotting vehicle
+	Called from		Google_DisplayMap	Loading Blank Map
+	Called from		ReLoadAllGeofences	
+
+GetPolygonRoutes(MapCompany, "*")) - PolyGeoFences = New List(Of ClsPolyGeofence)
+
+	Called from		Google_DisplayMap	If plotting vehicle
+	Called from		Google_DisplayMap	Loading Blank Map	
+	Called from		ReLoadAllGeofences
+	
+Route Maintenance
+	mnuCreateRoutes
+	
+	btnCreateRoute calls CalculateNewRoute in MST_RoutesJS.js
+	mnuShowRoutes
+		Loaded tvRoutes from PolyGeoFences (Created by GetPolygonRoutes)
+		btnShowSelectedRoutes - From Route Maintenance - Show Routes	- All Routes Allocated or unallocated
+		Calls function  showSelectedRoutes(String selectedRoutes)
+		
+Show Routes (from Map Context Menu.) - Only Show Allocated Routes		
+	CreateRoutesLayer
+		uses str_PolylineRoutes loaded by SetMapOptions {str_PolygonRoutes} from PlotPolygonRoutes

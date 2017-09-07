@@ -1,0 +1,174 @@
+﻿Version Log MSTGoogleMap		
+
+1.2.32.104		20110406	RJG		Initial
+
+1.2.32.105		20110425	RJG
+				1. Correct Goole Map not closing when File>Close is selected
+				2. Map no longer always on top. 	
+
+1.2.32.106		20110510	RJG	
+				1. Not using form locations correctly when restarting application.
+
+8.2.32.001		20130108	RJG
+				Test build
+8.2.32.004		20031327	RJG
+				Another test build
+8.2.32.005		2013/05/30	RJG
+				Correct plot error in unit history
+8.3.32.006		2013/06/19	RJG
+				Add API key
+				Add Cluster Count
+				Add Refresh time to HTML page
+
+8.3.32.007		2013/06/21  RJG
+				Improve error handling
+				Correct cluster display on refresh
+
+8.3.32.008		2013/06/27 RJG
+				Alter Google access to use clientID  after consultation with Google Support Ref: 03197867
+
+8.3.32.009		2013/08/06 RJG
+				Test Build
+
+8.3.32.010		2013/08/07	RJG
+				Change Google_DisplayMap to invoke to allow access from exernal thread
+
+8.3.32.011		2013/08/12	RJG
+				Improve handling of GoogleKey3. Stops map from loading if key is empty after clicking cnacel on Key Entry form.
+
+8.3.32.012		2013/08/16	RJG
+				Changed History map to use different form from Fleet Map.
+				Fix bug in context menu.
+8.3.32.013		2013/08/20	RJG
+				Bug Fixes for Hstory Map
+
+8.3.32.014		2013/08/20	RJG
+				Correct history map closing
+
+8.3.32.015		2013/11/11	RJG
+				Changes to labels on history page
+
+8.3.32.016		2014/03/04	RJG
+				Remove labels from history map and replace with hide vehicles. Now draws coloured lnes for each day in the history as per web based maps.
+				Changes to labels on fleet map to improve redraw speed when hiding/showing lables.
+
+8.3.32.017		2014/10/16	RJG
+				Beta test for polygon geofences.
+
+8.3.32.018		2014/11/06	RJG
+				Test Build for polygon geofences.
+
+8.3.32.019		2014/11/07	RJG
+				Test build for polygons geofences
+
+8.3.32.020		2014/11/11	RJG
+				Test build for polygons geofences
+
+8.3.32.021		2014/11/24 RJG
+				Test build for polygons geofences
+
+8.3.32.022		2014/11/25 RJG
+				Alpha Build for polygon geofences
+8.3.32.023		2014/11/25 RJG	
+				Release build for polygon geofences
+
+8.3.32.024		2014/11/26 RJG	
+				Final Beta Release
+
+8.3.32.025		2014/12/17 RJG
+				Alter sql in frmMSTGoogleHistoryMap>PlotSites to only select sites for active Company/Fleet.
+
+8.3.32.026		2014/12/18 RJG
+				Correct datetime display on history map.
+
+8.3.32.027		2014/12/18 RJG
+				Corrections to date time display on both Current and history maps.
+
+8.3.32.028		2015/08/14 RJG
+				Correct speed displays on maps when using MPH. (ZOHO ID 669)
+
+8.3.32.029		2015/08/17 RJG
+				Correct delete of newly created, unallocated polygon.
+
+8.3.32.030		2015/08/18 RJG
+				Limit size of infowindow to 300 
+
+8.3.32.031		2015/09/19 RJG
+				Add import of KML files.
+
+8.3.32.040		2016/01/12 RJG
+				Upgrade to framework 4.6.1
+				Changed javascript generation.
+				Beta add of Routes
+
+8.3.32.041		2016/01/12	RJG
+				Correct loading sites when fleetcode = "*"
+				Correct loading routes when multiple routes with different companies.
+
+8.3.32.042		2016/01/12	RJG
+				Correct loading sites when fleetcode = "*"
+				Correct loading routes when multiple routes with different companies.
+
+8.3.32.043		2016/01/29	RJG
+				Add Routes support
+
+8.3.32.044		2016/02/09	RJG
+				Enhancements to initial release of Routes.
+
+                
+8.3.32.045		2016/02/15	RJG
+				Enhancements to initial release of Routes.
+
+8.3.32.046		2016/02/17	RJG
+				Enhancements to initial release of Routes
+
+8.3.32.047		2016/02/19	RJG
+				Enhancements to initial release of Routes
+
+8.3.32.048		2016/02/19	RJG
+				Enhancements to initial release of Routes
+               
+8.3.32.049		2016/02/19	RJG
+				Enhancements to initial release of Routes
+
+8.3.32.050      2016/06/01  RJG
+                Correct path for cluster icons on markercluster.js
+                set google api version to 3, was 3.22. This will load the current release api version
+
+8.3.32.051      2016/06/02  RJG
+                include script https://cdnjs.cloudflare.com/ajax/libs/json2/20150503/json2.min.js in google page as IE7(which the browser emulates) does not support JSON.
+
+8.4.32.0        2016/09/06  RJG
+                Combined build for both MSTrack Pro(No Routing) and MST Viewer(With Routing). See modMSTGoogleMaps>StartGoogleMapApp
+                      myGoogleMapApp.IsMSTrack = True                                'Added 20160905 RJG     True = MSTrack, False = MSTViewer
+8.4.32.100      2016/09/13  RJG 
+                Release build using CEFSharp as browswer replacement for IE plugin.
+                removed script https://cdnjs.cloudflare.com/ajax/libs/json2/20150503/json2.min.js
+
+8.4.32.101      2016/09/16  RJG
+                Do not reset map zoom level when displaying geo assets or when changing vehicle labels.
+                Correct Show Allocated Routes on History Map
+
+8.4.32.102      2016/09/19  RJG
+                Do not reset map zoom level when hiding/showing vehicle lables.
+                Imrpove error handling when processing polygon coordes.
+
+8.4.32.103      2016/09/21 RJG
+                Changes to handling geofences created from the web with type = 6
+
+8.4.32.104      2016/09/27 RJG
+                Change Goefences and Sites reload to only happen if sites or geofences have been altered.
+
+8.4.32.105      2016/09/27
+                Modifications to allow change of Company Fleet to reflect in the DLL>
+
+8.4.32.200		2017/07/18
+				Add test for EMULATE_BROWSER_TYPE and set IE Browser Emulation to IE11.
+				Remove CEFSharp and replace with winforms.webBroswer.
+
+8.4.32.201		2017/07/19
+				Adding Costura Fody to bundle all required files into one assembly
+
+8.4.32.202		2017/08/09
+				Change SiteArray from string to JSON.
+				Submitted to GitHub prior to any further changes
