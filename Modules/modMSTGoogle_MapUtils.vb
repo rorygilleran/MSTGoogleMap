@@ -8,7 +8,7 @@ Module modMSTGoogle_MapUtils
     Public MapGeoPlacesConnectionString As String
     '20130815 RJG Added two lines
     'Public MapCompany As String
-    'Public MapFleet_Code As String
+    Public MapFleet_Code As String
 
     Public theDistanceUnits As String = "Kilometres"
     Public theGoogleMapKey As String = ""
